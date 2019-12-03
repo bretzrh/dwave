@@ -7,6 +7,7 @@ G.add_nodes_from([0,1,2], weight = -1)
 G.add_weighted_edges_from([(0,1, 2.0),(0,2, 2.0),(1,2, 2.0)])
 
 
+
 # Draw the graph
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -27,7 +28,16 @@ linear = {('x0', 'x0'): -1, ('x1', 'x1'): -1, ('x2', 'x2'): -1}
 quadratic = {('x0', 'x1'): 2, ('x0', 'x2'): 2, ('x1', 'x2'): 2}
 Q = dict(linear)
 Q.update(quadratic)
+
+# Try converting G to this format
+linear_G = {(n,n):d['weight'] for n,d in G.nodes(data=True)}
+quadratic_G = nx.get_edge_attributes(G,'weight') # Note this is the same as elabels
+QG = dict(linear_G)
+QG.update(quadratic_G)
+
+
 # Minor-embed and sample 1000 times on a default D-Wave system
-response = EmbeddingComposite(DWaveSampler()).sample_qubo(Q, num_reads=1000)
+#response = EmbeddingComposite(DWaveSampler()).sample_qubo(Q, num_reads=1000)
+response = EmbeddingComposite(DWaveSampler()).sample_qubo(QG, num_reads=1000)
 for datum in response.data(['sample', 'energy', 'num_occurrences']):
     print(datum.sample, "Energy: ", datum.energy, "Occurrences: ", datum.num_occurrences)
